@@ -1,4 +1,4 @@
-﻿using MvcMusicStore.Models;
+using MvcMusicStore.Models;
 using System;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -31,9 +31,10 @@ namespace MvcMusicStore.Controllers
         [HttpPost]
         public ActionResult LogOn(LogOnModel model, string returnUrl)
         {
+            AccountService accountService = new AccountService();
             if (ModelState.IsValid)
             {
-                if (Membership.ValidateUser(model.UserName, model.Password))
+                if (accountService.LogOn(model.UserName, model.Password))
                 {
                     MigrateShoppingCart(model.UserName);
 
@@ -84,12 +85,11 @@ namespace MvcMusicStore.Controllers
         [HttpPost]
         public ActionResult Register(RegisterModel model)
         {
+            AccountService accountService = new AccountService();
             if (ModelState.IsValid)
             {
                 // Attempt to register the user
-                MembershipCreateStatus createStatus;
-                Membership.CreateUser(model.UserName, model.Password, model.Email, "question", "answer", true, null, out createStatus);
-
+                var createStatus = accountService.Register(model.UserName, model.Password, model.Email);
                 if (createStatus == MembershipCreateStatus.Success)
                 {
                     MigrateShoppingCart(model.UserName);
@@ -123,6 +123,7 @@ namespace MvcMusicStore.Controllers
         [HttpPost]
         public ActionResult ChangePassword(ChangePasswordModel model)
         {
+            AccountService accountService = new AccountService();
             if (ModelState.IsValid)
             {
 
@@ -131,8 +132,7 @@ namespace MvcMusicStore.Controllers
                 bool changePasswordSucceeded;
                 try
                 {
-                    MembershipUser currentUser = Membership.GetUser(User.Identity.Name, true /* userIsOnline */);
-                    changePasswordSucceeded = currentUser.ChangePassword(model.OldPassword, model.NewPassword);
+                    changePasswordSucceeded = accountService.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword);
                 }
                 catch (Exception)
                 {
@@ -200,5 +200,6 @@ namespace MvcMusicStore.Controllers
             }
         }
         #endregion
+
     }
 }
